@@ -45,6 +45,9 @@ For prepairing binary images dataset, you can clone this repositiry and run `dat
 |step1 ![16](https://user-images.githubusercontent.com/82975802/158050748-421ab337-8498-4e90-bc96-aba5497ce9a6.jpg)|step2![16 (1)](https://user-images.githubusercontent.com/82975802/158050752-4b7358c3-ec59-431a-a1b9-ae5bed3f1dce.jpg)|step3![16 (1)](https://user-images.githubusercontent.com/82975802/158051013-db7548ff-9239-4b5b-b8af-af8863543ec8.png)|step4![16 (2)](https://user-images.githubusercontent.com/82975802/158051025-db2f45a8-3ab3-41d0-88ea-00920e278273.jpg)|step5![16](https://user-images.githubusercontent.com/82975802/158051028-d6fb91cd-5293-47b9-922b-3cee0420f8ad.png)|
 | ------------- | ------------- | ------------- | ------------- | ------------- |
 
+
+- In this step you need trained models to prepaire dataset. If you have trouble downloading models, you can download manually using this link: [Trained Models](https://drive.google.com/drive/folders/1uOaQCpNtosIjEL2phQKEdiYd0Td18jNo?usp=sharing)
+
 #
 
 ### Instalation
@@ -82,11 +85,13 @@ There are two solutions for training:
 !python train.py --data-dir ./dataset/dataset --num-classes 7 --batch-size 3 --imagenet-pretrain ./pretrain_model/resnet101-imagenet.pth
 ```
 
+- Used `wandb` in training pocess.
+
 #
 
 ### Inference
 
-1- For inference, first download pretrained model from this link and put in `./log` directory: [download model](https://drive.google.com/file/d/1-rng3cB80QR1-Gm3nOyffJxQ6LwX3Qfc/view?usp=sharing)
+1- For inference, first download pretrained model on binary images from this link and put in `./log` directory: [download model](https://drive.google.com/file/d/1-rng3cB80QR1-Gm3nOyffJxQ6LwX3Qfc/view?usp=sharing)
 
 2- Put your binary images in `./input` directory
 
