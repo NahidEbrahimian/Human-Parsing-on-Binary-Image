@@ -31,6 +31,7 @@ from utils.criterion import CriterionAll
 from utils.encoding import DataParallelModel, DataParallelCriterion
 from utils.warmup_scheduler import SGDRScheduler
 
+import wandb
 
 def get_arguments():
     """Parse all the arguments provided from the CLI.
@@ -95,6 +96,7 @@ def main():
     model = DataParallelModel(AugmentCE2P)
     model.cuda()
 
+                
     IMAGE_MEAN = AugmentCE2P.mean
     IMAGE_STD = AugmentCE2P.std
     INPUT_SPACE = AugmentCE2P.input_space
@@ -144,13 +146,24 @@ def main():
                                  std=IMAGE_STD),
         ])
 
+    if INPUT_SPACE == 'bin':
+        print('BIN Transformation')
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize(mean=IMAGE_MEAN,
+                                 std=IMAGE_STD),
+        ])
+
     train_dataset = LIPDataSet(args.data_dir, 'train', crop_size=input_size, transform=transform)
     train_loader = data.DataLoader(train_dataset, batch_size=args.batch_size * len(gpus),
                                    num_workers=16, shuffle=True, pin_memory=True, drop_last=True)
     print('Total training samples: {}'.format(len(train_dataset)))
 
     # Optimizer Initialization
-    optimizer = optim.SGD(model.parameters(), lr=args.learning_rate, momentum=args.momentum,
+    wandb.init(project="Self Correction Human Parsing")
+    config = wandb.config
+    config.learning_rate = 7e-3
+    optimizer = optim.SGD(model.parameters(), lr=config.learning_rate, momentum=args.momentum,
                           weight_decay=args.weight_decay)
 
     lr_scheduler = SGDRScheduler(optimizer, total_epoch=args.epochs,
@@ -222,7 +235,9 @@ def main():
         end = timeit.default_timer()
         print('epoch = {} of {} completed using {} s'.format(epoch, args.epochs,
                                                              (end - start) / (epoch - start_epoch + 1)))
-
+        wandb.log({'epochs':  epoch + 1,
+              'loss': loss.data.cpu().numpy(),
+                              })
     end = timeit.default_timer()
     print('Training Finished in {} seconds'.format(end - start))
 
