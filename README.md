@@ -52,7 +52,7 @@ For prepairing binary images dataset, you can clone this repositiry and run `dat
 1- Clone this repository using the following command:
 
 ```
-https://github.com/NahidEbrahimian/Human-Parsing-on-Binary-Images
+https://github.com/NahidEbrahimian/Human-Parsing-on-Binary-Image
 ```
 
 2- In ```./Human-Parsing-on-Binary-Images``` directory, run the following command to install requirements:
@@ -68,7 +68,7 @@ pip install -r requirements.txt
 1- Clone this repository using the following command:
 
 ```
-https://github.com/NahidEbrahimian/Human-Parsing-on-Binary-Images
+https://github.com/NahidEbrahimian/Human-Parsing-on-Binary-Image
 ```
 
 There are two solutions for training:
@@ -78,7 +78,7 @@ There are two solutions for training:
 2- Afther prepairing dataset, run the following command:
 
 ```
-%cd ./Human-Parsing-on-Binary-Images
+%cd ./Human-Parsing-on-Binary-Image
 !python train.py --data-dir ./dataset/dataset --num-classes 7 --batch-size 3 --imagenet-pretrain ./pretrain_model/resnet101-imagenet.pth
 ```
 
@@ -86,7 +86,7 @@ There are two solutions for training:
 
 ### Inference
 
-1- For inference, first download pretrained model from this link and put in `./log` directory: [download model](https://drive.google.com/file/d/1-MGJP3ffp1OYEyirMx-l-uJ51k4Jlus9/view?usp=sharing)
+1- For inference, first download pretrained model from this link and put in `./log` directory: [download model](https://drive.google.com/file/d/1-rng3cB80QR1-Gm3nOyffJxQ6LwX3Qfc/view?usp=sharing)
 
 2- Put your binary images in `./input` directory
 
