@@ -19,6 +19,7 @@ import cv2
 from torch.utils import data
 from utils.transforms import get_affine_transform
 
+import logging
 
 class LIPDataSet(data.Dataset):
     def __init__(self, root, dataset, crop_size=[473, 473], scale_factor=0.25,
@@ -59,74 +60,83 @@ class LIPDataSet(data.Dataset):
 
     def __getitem__(self, index):
         train_item = self.train_list[index]
+        # print(train_item)
 
         im_path = os.path.join(self.root, self.dataset + '_images', train_item + '.jpg')
         parsing_anno_path = os.path.join(self.root, self.dataset + '_segmentations', train_item + '.png')
+        # print(im_path)
 
-        im = cv2.imread(im_path, cv2.IMREAD_COLOR)
-        h, w, _ = im.shape
-        parsing_anno = np.zeros((h, w), dtype=np.long)
+        try:
+            im = cv2.imread(im_path, cv2.IMREAD_COLOR)
+            h, w, _ = im.shape
+            parsing_anno = np.zeros((h, w), dtype=np.long)
 
-        # Get person center and scale
-        person_center, s = self._box2cs([0, 0, w - 1, h - 1])
-        r = 0
+            # Get person center and scale
+            person_center, s = self._box2cs([0, 0, w - 1, h - 1])
+            r = 0
 
-        if self.dataset != 'test':
-            # Get pose annotation
-            parsing_anno = cv2.imread(parsing_anno_path, cv2.IMREAD_GRAYSCALE)
-            if self.dataset == 'train' or self.dataset == 'trainval':
-                sf = self.scale_factor
-                rf = self.rotation_factor
-                s = s * np.clip(np.random.randn() * sf + 1, 1 - sf, 1 + sf)
-                r = np.clip(np.random.randn() * rf, -rf * 2, rf * 2) if random.random() <= 0.6 else 0
+            if self.dataset != 'test':
+                # Get pose annotation
+                parsing_anno = cv2.imread(parsing_anno_path, cv2.IMREAD_GRAYSCALE)
+                if self.dataset == 'train' or self.dataset == 'trainval':
+                    sf = self.scale_factor
+                    rf = self.rotation_factor
+                    s = s * np.clip(np.random.randn() * sf + 1, 1 - sf, 1 + sf)
+                    r = np.clip(np.random.randn() * rf, -rf * 2, rf * 2) if random.random() <= 0.6 else 0
 
-                if random.random() <= self.flip_prob:
-                    im = im[:, ::-1, :]
-                    parsing_anno = parsing_anno[:, ::-1]
-                    person_center[0] = im.shape[1] - person_center[0] - 1
-                    right_idx = [15, 17, 19]
-                    left_idx = [14, 16, 18]
-                    for i in range(0, 3):
-                        right_pos = np.where(parsing_anno == right_idx[i])
-                        left_pos = np.where(parsing_anno == left_idx[i])
-                        parsing_anno[right_pos[0], right_pos[1]] = left_idx[i]
-                        parsing_anno[left_pos[0], left_pos[1]] = right_idx[i]
+                    if random.random() <= self.flip_prob:
+                        im = im[:, ::-1, :]
+                        parsing_anno = parsing_anno[:, ::-1]
+                        person_center[0] = im.shape[1] - person_center[0] - 1
+                        right_idx = [15, 17, 19]
+                        left_idx = [14, 16, 18]
+                        for i in range(0, 3):
+                            right_pos = np.where(parsing_anno == right_idx[i])
+                            left_pos = np.where(parsing_anno == left_idx[i])
+                            parsing_anno[right_pos[0], right_pos[1]] = left_idx[i]
+                            parsing_anno[left_pos[0], left_pos[1]] = right_idx[i]
 
-        trans = get_affine_transform(person_center, s, r, self.crop_size)
-        input = cv2.warpAffine(
-            im,
-            trans,
-            (int(self.crop_size[1]), int(self.crop_size[0])),
-            flags=cv2.INTER_LINEAR,
-            borderMode=cv2.BORDER_CONSTANT,
-            borderValue=(0, 0, 0))
-
-        if self.transform:
-            input = self.transform(input)
-
-        meta = {
-            'name': train_item,
-            'center': person_center,
-            'height': h,
-            'width': w,
-            'scale': s,
-            'rotation': r
-        }
-
-        if self.dataset == 'val' or self.dataset == 'test':
-            return input, meta
-        else:
-            label_parsing = cv2.warpAffine(
-                parsing_anno,
+            trans = get_affine_transform(person_center, s, r, self.crop_size)
+            input = cv2.warpAffine(
+                im,
                 trans,
                 (int(self.crop_size[1]), int(self.crop_size[0])),
-                flags=cv2.INTER_NEAREST,
+                flags=cv2.INTER_LINEAR,
                 borderMode=cv2.BORDER_CONSTANT,
-                borderValue=(255))
+                borderValue=(0, 0, 0))
 
-            label_parsing = torch.from_numpy(label_parsing)
+            if self.transform:
+                input = self.transform(input)
 
-            return input, label_parsing, meta
+            meta = {
+                'name': train_item,
+                'center': person_center,
+                'height': h,
+                'width': w,
+                'scale': s,
+                'rotation': r
+            }
+
+            if self.dataset == 'val' or self.dataset == 'test':
+                return input, meta
+            else:
+                label_parsing = cv2.warpAffine(
+                    parsing_anno,
+                    trans,
+                    (int(self.crop_size[1]), int(self.crop_size[0])),
+                    flags=cv2.INTER_NEAREST,
+                    borderMode=cv2.BORDER_CONSTANT,
+                    borderValue=(255))
+
+                label_parsing = torch.from_numpy(label_parsing)
+
+                return input, label_parsing, meta
+
+        except Exception as exc:
+            logging.error(f'{im_path}'.format(type(exc).__name__, exc))
+            # logging.info(im_path)
+
+
 
 
 class LIPDataValSet(data.Dataset):
