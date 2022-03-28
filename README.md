@@ -1,129 +1,99 @@
-# Self Correction for Human Parsing
+# Self-Correction-Human-Parsing-on-Binary-Images
 
-![Python 3.6](https://img.shields.io/badge/python-3.6-green.svg)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
-An out-of-box human parsing representation extractor.
+|Original Images![original](https://user-images.githubusercontent.com/82975802/157465562-83906309-78f0-4390-a1b2-0d3e9a0321aa.jpg)|Contrast Enhancement![enhancment](https://user-images.githubusercontent.com/82975802/157465807-fda59e46-1c33-4e83-baf8-6a3499a8384e.jpg)|
+| ------------- | ------------- |
 
-Our solution ranks 1st for all human parsing tracks (including single, multiple and video) in the third LIP challenge!
+|Output Pascal Model![pascal model](https://user-images.githubusercontent.com/82975802/157465918-2537f386-057c-4bc8-8cc5-0e1aeb5d5d44.png)|Binary Image-Input Model![input images](https://user-images.githubusercontent.com/82975802/157465975-637b2d44-27be-488b-9337-60d50f266539.jpg)|Inference Result![model inference](https://user-images.githubusercontent.com/82975802/157469098-9c593853-1104-42ce-a4ce-3315482fa9ee.png)|
+| ------------- | ------------- | ------------- |
 
-![lip-visualization](./demo/lip-visualization.jpg) 
+- [x] train.py
+- [x] dataset.ipynb
+- [x] dataset_and_train.ipynb
+- [x] simple_extractor.py(inference)
+- [x] requirements.txt
+- [ ] evaluate.py
 
-Features:
-- [x] Out-of-box human parsing extractor for other downstream applications.
-- [x] Pretrained model on three popular single person human parsing datasets.
-- [x] Training and inferecne code.
-- [x] Simple yet effective extension on multi-person and video human parsing tasks.
+#
 
-## Requirements
+### Dataset
+
+Dataset name: bodies-at-rest
+
+Github repository: https://github.com/Healthcare-Robotics/bodies-at-rest
+
+We used real dataset of bodies-at-rest dataset that contains 20 human participants (10M/10F) with 1K labeled real pressure images.
+
+- prepairing binary images dataset:
+
+For preparing dataset, we used pascal pretrained model that implemented for RGB images. The Pascal Person Part has 7 labels, including 'Background', 'Head', 'Torso', 'Upper Arms', 'Lower Arms', 'Upper Legs', 'Lower Legs'.
+
+The steps for preparing the database are as follows
+
+1- Extraction of image field of dataset pickle file 
+
+2- Improve image contrast
+
+3- Create segmented images using pascal model
+
+4- Convert segmented images using pascal model to binary images
+
+5- Creating labels of binary images that contains 7 classes
+
+For prepairing binary images dataset, you can clone this repositiry and run `dataset.ipynb` file.
+
+|step1 ![16](https://user-images.githubusercontent.com/82975802/158050748-421ab337-8498-4e90-bc96-aba5497ce9a6.jpg)|step2![16 (1)](https://user-images.githubusercontent.com/82975802/158050752-4b7358c3-ec59-431a-a1b9-ae5bed3f1dce.jpg)|step3![16 (1)](https://user-images.githubusercontent.com/82975802/158051013-db7548ff-9239-4b5b-b8af-af8863543ec8.png)|step4![16 (2)](https://user-images.githubusercontent.com/82975802/158051025-db2f45a8-3ab3-41d0-88ea-00920e278273.jpg)|step5![16](https://user-images.githubusercontent.com/82975802/158051028-d6fb91cd-5293-47b9-922b-3cee0420f8ad.png)|
+| ------------- | ------------- | ------------- | ------------- | ------------- |
+
+#
+
+### Instalation
+
+1- Clone this repository using the following command:
 
 ```
-conda env create -f environment.yaml
-conda activate schp
+https://github.com/NahidEbrahimian/Human-Parsing-on-Binary-Images
+```
+
+2- In ```./Human-Parsing-on-Binary-Images``` directory, run the following command to install requirements:
+
+```
 pip install -r requirements.txt
 ```
 
-## Simple Out-of-Box Extractor
+#
 
-The easiest way to get started is to use our trained SCHP models on your own images to extract human parsing representations. Here we provided state-of-the-art [trained models](https://drive.google.com/drive/folders/1uOaQCpNtosIjEL2phQKEdiYd0Td18jNo?usp=sharing) on three popular datasets. Theses three datasets have different label system, you can choose the best one to fit on your own task.
+### Train
 
-**LIP** ([exp-schp-201908261155-lip.pth](https://drive.google.com/file/d/1k4dllHpu0bdx38J7H28rVVLpU-kOHmnH/view?usp=sharing))
-
-* mIoU on LIP validation: **59.36 %**.
-
-* LIP is the largest single person human parsing dataset with 50000+ images. This dataset focus more on the complicated real scenarios. LIP has 20 labels, including 'Background', 'Hat', 'Hair', 'Glove', 'Sunglasses', 'Upper-clothes', 'Dress', 'Coat', 'Socks', 'Pants', 'Jumpsuits', 'Scarf', 'Skirt', 'Face', 'Left-arm', 'Right-arm', 'Left-leg', 'Right-leg', 'Left-shoe', 'Right-shoe'.
-
-**ATR** ([exp-schp-201908301523-atr.pth](https://drive.google.com/file/d/1ruJg4lqR_jgQPj-9K0PP-L2vJERYOxLP/view?usp=sharing))
-
-* mIoU on ATR test: **82.29%**.
-
-* ATR is a large single person human parsing dataset with 17000+ images. This dataset focus more on fashion AI. ATR has 18 labels, including 'Background', 'Hat', 'Hair', 'Sunglasses', 'Upper-clothes', 'Skirt', 'Pants', 'Dress', 'Belt', 'Left-shoe', 'Right-shoe', 'Face', 'Left-leg', 'Right-leg', 'Left-arm', 'Right-arm', 'Bag', 'Scarf'.
-
-**Pascal-Person-Part** ([exp-schp-201908270938-pascal-person-part.pth](https://drive.google.com/file/d/1E5YwNKW2VOEayK9mWCS3Kpsxf-3z04ZE/view?usp=sharing))
-
-* mIoU on Pascal-Person-Part validation: **71.46** %.
-
-* Pascal Person Part is a tiny single person human parsing dataset with 3000+ images. This dataset focus more on body parts segmentation. Pascal Person Part has 7 labels, including 'Background', 'Head', 'Torso', 'Upper Arms', 'Lower Arms', 'Upper Legs', 'Lower Legs'.
-
-Choose one and have fun on your own task!
-
-To extract the human parsing representation, simply put your own image in the `INPUT_PATH` folder, then download a pretrained model and run the following command. The output images with the same file name will be saved in `OUTPUT_PATH`
+1- Clone this repository using the following command:
 
 ```
-python simple_extractor.py --dataset [DATASET] --model-restore [CHECKPOINT_PATH] --input-dir [INPUT_PATH] --output-dir [OUTPUT_PATH]
+https://github.com/NahidEbrahimian/Human-Parsing-on-Binary-Images
 ```
 
-**[Updated]** Here is also a [colab demo example](https://colab.research.google.com/drive/1JOwOPaChoc9GzyBi5FUEYTSaP2qxJl10?usp=sharing) for quick inference provided by [@levindabhi](https://github.com/levindabhi).
+There are two solutions for training:
 
-The `DATASET` command has three options, including 'lip', 'atr' and 'pascal'. Note each pixel in the output images denotes the predicted label number. The output images have the same size as the input ones. To better visualization, we put a palette with the output images. We suggest you to read the image with `PIL`.
+1- You can run `dataset_and_train.ipynb` file for both prepairing dataset and training
 
-If you need not only the final parsing images, but also the feature map representations. Add `--logits` command to save the output feature maps. These feature maps are the logits before softmax layer.
-
-## Dataset Preparation
-
-Please download the [LIP](http://sysu-hcp.net/lip/) dataset following the below structure.
-
-```commandline
-data/LIP
-|--- train_imgaes # 30462 training single person images
-|--- val_images # 10000 validation single person images
-|--- train_segmentations # 30462 training annotations
-|--- val_segmentations # 10000 training annotations
-|--- train_id.txt # training image list
-|--- val_id.txt # validation image list
-```
-
-## Training
+2- Afther prepairing dataset, run the following command:
 
 ```
-python train.py 
-```
-By default, the trained model will be saved in `./log` directory. Please read the arguments for more details.
-
-## Evaluation
-```
-python evaluate.py --model-restore [CHECKPOINT_PATH]
-```
-CHECKPOINT_PATH should be the path of trained model.
-
-## Extension on Multiple Human Parsing
-
-Please read [MultipleHumanParsing.md](./mhp_extension/README.md) for more details.
-
-## Citation
-
-Please cite our work if you find this repo useful in your research.
-
-```latex
-@article{li2020self,
-  title={Self-Correction for Human Parsing}, 
-  author={Li, Peike and Xu, Yunqiu and Wei, Yunchao and Yang, Yi},
-  journal={IEEE Transactions on Pattern Analysis and Machine Intelligence}, 
-  year={2020},
-  doi={10.1109/TPAMI.2020.3048039}}
+%cd ./Human-Parsing-on-Binary-Images
+!python train.py --data-dir ./dataset/dataset --num-classes 7 --batch-size 3 --imagenet-pretrain ./pretrain_model/resnet101-imagenet.pth
 ```
 
-## Visualization
+#
 
-* Source Image.
-![demo](./demo/demo.jpg)
-* LIP Parsing Result.
-![demo-lip](./demo/demo_lip.png)
-* ATR Parsing Result.
-![demo-atr](./demo/demo_atr.png)
-* Pascal-Person-Part Parsing Result.
-![demo-pascal](./demo/demo_pascal.png)
-* Source Image.
-![demo](./mhp_extension/demo/demo.jpg)
-* Instance Human Mask.
-![demo-lip](./mhp_extension/demo/demo_instance_human_mask.png)
-* Global Human Parsing Result.
-![demo-lip](./mhp_extension/demo/demo_global_human_parsing.png)
-* Multiple Human Parsing Result.
-![demo-lip](./mhp_extension/demo/demo_multiple_human_parsing.png)
+### Inference
+
+1- For inference, first download pretrained model from this link and put in `./log` directory: [download model](https://drive.google.com/file/d/1-MGJP3ffp1OYEyirMx-l-uJ51k4Jlus9/view?usp=sharing)
+
+2- Put your binary images in `./input` directory
+
+3- Run the following command:
+
+```
+!python simple_extractor.py --dataset 'pascal' --model-restore "./log/checkpoint_40.pth.tar" --input-dir './input' --output-dir './output'
+```
 
 
-## Related
-Our code adopts the [InplaceSyncBN](https://github.com/mapillary/inplace_abn) to save gpu memory cost.
-
-There is also a [PaddlePaddle](https://github.com/PaddlePaddle/PaddleSeg/tree/develop/contrib/ACE2P) Implementation of this project.
